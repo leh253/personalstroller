@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { ArrowRight, ArrowLeft } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Check } from 'lucide-react';
 import Logo from '../components/Logo';
 import { QUIZ_STEPS } from '../constants';
 import { QuizAnswers } from '../types';
@@ -17,6 +18,7 @@ const QuizScreen: React.FC<Props> = ({ onComplete, onBack, initialAnswers }) => 
   
   const currentQ = QUIZ_STEPS[stepIndex];
   const isLastQuestion = stepIndex === QUIZ_STEPS.length - 1;
+  const isQuestion5 = currentQ.id === 'Q5'; // Terrain question has more options
 
   const handleAnswer = (value: string) => {
     if (isSubmitting) return;
@@ -26,38 +28,78 @@ const QuizScreen: React.FC<Props> = ({ onComplete, onBack, initialAnswers }) => 
     setTimeout(() => {
       if (!isLastQuestion) setStepIndex(prev => prev + 1);
       else onComplete(newAnswers);
-    }, 200); 
-  };
-
-  const handleBack = () => {
-    if (isSubmitting) return;
-    if (stepIndex > 0) setStepIndex(prev => prev - 1);
-    else onBack();
+    }, 250); // Slightly longer delay for animation feeling
   };
 
   const progress = ((stepIndex + 1) / QUIZ_STEPS.length) * 100;
 
   return (
-    <div className="w-full h-full p-6 flex flex-col">
-      <div className="max-w-md w-full mx-auto flex flex-col h-full">
-        <div className="flex justify-between items-center mb-8 animate-in">
-          <div className="flex items-center gap-3"><button onClick={handleBack} className="text-gray-400 hover:text-white transition-colors p-2 -ml-2 rounded-full hover:bg-white/5 backdrop-blur-sm" disabled={isSubmitting}><ArrowLeft size={20} /></button><Logo size="small" /></div>
-          <div className="text-right"><p className="text-gold-400 font-bold text-xl italic">0{stepIndex + 1} <span className="text-gray-500 text-sm font-normal not-italic">/ 0{QUIZ_STEPS.length}</span></p></div>
+    <div className="w-full flex-1 flex flex-col relative min-h-screen overflow-hidden">
+      {/* Top Bar */}
+      <div className="p-6 shrink-0 z-20">
+        <div className="max-w-xl mx-auto">
+          <div className="flex justify-between items-center mb-6">
+            <button 
+              onClick={() => stepIndex > 0 ? setStepIndex(s => s - 1) : onBack()} 
+              className="text-gray-400 hover:text-white p-2 -ml-2 rounded-full hover:bg-white/5 transition-colors group"
+              disabled={isSubmitting}
+            >
+              <ArrowLeft size={22} className="group-hover:-translate-x-1 transition-transform" />
+            </button>
+            
+            <div className="flex flex-col items-end">
+               <span className="text-gold-400 font-serif text-2xl italic leading-none">0{stepIndex + 1}</span>
+               <span className="text-gray-600 text-[10px] font-medium tracking-widest uppercase">Question</span>
+            </div>
+          </div>
+          
+          {/* Elegant Progress Line */}
+          <div className="w-full bg-white/5 h-[2px] rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-[#c5a065] to-[#fde68a] transition-all duration-700 ease-[cubic-bezier(0.25,0.1,0.25,1)] shadow-[0_0_10px_rgba(197,160,101,0.5)]" 
+              style={{ width: `${progress}%` }}
+            ></div>
+          </div>
         </div>
-        <div className="w-full bg-white/5 h-1 rounded-full mb-12 overflow-hidden backdrop-blur-sm border border-white/5 animate-in"><div className="h-full bg-gradient-to-r from-gold-400 via-yellow-300 to-amber-500 transition-all duration-700 ease-out shadow-[0_0_15px_#c5a065]" style={{ width: `${progress}%` }}></div></div>
-        <div key={currentQ.id} className="flex-1 flex flex-col justify-center animate-in-up">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 leading-tight px-2 text-white drop-shadow-md">{currentQ.question}</h2>
-          <div className="space-y-4">
-            {currentQ.options.map((opt, i) => {
-              const isSelected = answers[currentQ.id] === opt.value;
-              const showLoading = isSelected && isSubmitting && isLastQuestion;
-              return (
-                <button key={i} onClick={() => handleAnswer(opt.value)} disabled={isSubmitting} className={`w-full py-5 px-6 rounded-2xl transition-all duration-300 text-lg flex justify-between items-center group border backdrop-blur-md ${isSelected ? 'bg-gradient-to-r from-gold-400 to-amber-600 border-gold-400 text-white shadow-[0_8px_25px_rgba(197,160,101,0.3)] scale-[1.02]' : 'bg-white/5 border-white/10 text-gray-200 hover:bg-white/10 hover:border-white/30 hover:shadow-lg active:scale-[0.98]'} ${isSubmitting && !isSelected ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                  <span className={`font-medium tracking-wide text-left flex-1 mr-4 ${isSelected ? 'text-white' : 'text-gray-100'}`}>{showLoading ? "Validation..." : opt.label}</span>
-                  <span className={`shrink-0 transition-transform duration-300 ${isSelected ? 'text-white' : 'text-gold-400/60 group-hover:translate-x-1 group-hover:text-gold-400'}`}>{showLoading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : isSelected ? '✓' : <ArrowRight size={20} />}</span>
-                </button>
-              );
-            })}
+      </div>
+
+      {/* Content Area */}
+      <div className="flex-1 flex flex-col justify-center px-6 pb-12 overflow-y-auto z-10">
+        <div className="max-w-md w-full mx-auto">
+          <div key={currentQ.id} className="animate-in-up flex flex-col">
+            <h2 className={`font-serif text-white text-center leading-tight mb-10 drop-shadow-lg ${isQuestion5 ? 'text-2xl' : 'text-3xl md:text-4xl'}`}>
+              {currentQ.question}
+            </h2>
+            
+            <div className={`grid gap-4 ${isQuestion5 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'}`}>
+              {currentQ.options.map((opt, i) => {
+                const isSelected = answers[currentQ.id] === opt.value;
+                
+                return (
+                  <button 
+                    key={i} 
+                    onClick={() => handleAnswer(opt.value)} 
+                    disabled={isSubmitting} 
+                    className={`relative w-full group transition-all duration-300 flex items-center justify-between p-5 rounded-2xl border backdrop-blur-md overflow-hidden
+                    ${isSelected 
+                        ? 'bg-[#c5a065] border-[#c5a065] text-white shadow-glow scale-[1.02]' 
+                        : 'bg-white/5 border-white/10 text-slate-200 hover:bg-white/10 hover:border-[#c5a065]/50 hover:shadow-lg'
+                    }`}
+                  >
+                    {/* Background glow on hover for unselected */}
+                    {!isSelected && <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />}
+                    
+                    <span className={`font-sans font-medium text-left tracking-wide z-10 ${isQuestion5 ? 'text-sm' : 'text-lg'} ${isSelected ? 'text-white' : 'text-slate-200'}`}>
+                      {opt.label}
+                    </span>
+                    
+                    <div className={`w-6 h-6 rounded-full border flex items-center justify-center transition-all z-10 ${isSelected ? 'border-white bg-white text-[#c5a065]' : 'border-white/20 text-transparent group-hover:border-[#c5a065] group-hover:text-[#c5a065]'}`}>
+                       {isSelected ? <Check size={14} strokeWidth={3} /> : <ArrowRight size={14} />}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>

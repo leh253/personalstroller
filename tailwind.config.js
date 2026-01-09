@@ -7,17 +7,31 @@ export default {
   ],
   theme: {
     extend: {
-      fontFamily: { sans: ['"Inter"', 'sans-serif'] },
+      fontFamily: { 
+        sans: ['"Outfit"', 'sans-serif'],
+        serif: ['"Playfair Display"', 'serif'],
+      },
       colors: {
         navy: { 
-          900: '#151b2b', // Retour au bleu nuit original
-          800: '#1e293b'  // Retour au gris/bleu slate pour les composants
+          950: '#0f172a',
+          900: '#151b2b', 
+          800: '#1e293b' 
         },
-        gold: { 400: '#c5a065', 500: '#b08d55', 600: '#8c6b3a' }
+        gold: { 
+          300: '#e0c9a6',
+          400: '#c5a065', 
+          500: '#b08d55', 
+          600: '#8c6b3a' 
+        }
+      },
+      boxShadow: {
+        'glow': '0 0 20px -5px rgba(197, 160, 101, 0.3)',
+        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
       },
       animation: {
-        'in': 'fadeIn 0.5s ease-out forwards',
-        'in-up': 'fadeInUp 0.5s ease-out forwards',
+        'in': 'fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+        'in-up': 'fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
       keyframes: {
         fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
