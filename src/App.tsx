@@ -1,140 +1,86 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { Loader2, Feather } from 'lucide-react';
 import WelcomeScreen from './screens/WelcomeScreen';
-import LoginScreen from './screens/LoginScreen';
-import RegisterScreen from './screens/RegisterScreen';
 import QuizScreen from './screens/QuizScreen';
 import ResultsScreen from './screens/ResultsScreen';
-import Logo from './components/Logo';
-import { supabase } from './services/supabase';
+import { QuizAnswers, Stroller, ScreenState } from './types';
 import { fetchMatchingStrollers } from './services/strollerService';
-import { ScreenState, QuizAnswers, Stroller } from './types';
 
-const App: React.FC = () => {
+export default function App() {
   const [screen, setScreen] = useState<ScreenState>('welcome');
+  const [quizAnswers, setQuizAnswers] = useState<QuizAnswers>({});
   const [results, setResults] = useState<Stroller[]>([]);
-  const [quizAnswers, setQuizAnswers] = useState<QuizAnswers | undefined>(undefined);
-  const [initializing, setInitializing] = useState(true);
-  const [quizSessionId, setQuizSessionId] = useState(0);
 
-  useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          setScreen('quiz');
-        }
-      } catch (error) {
-        console.error("Session check failed", error);
-      } finally {
-        setInitializing(false);
-      }
-    };
-    checkUser();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
-        setScreen(current => {
-           if (current !== 'welcome' && current !== 'login' && current !== 'register') return 'welcome';
-           return current;
-        });
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setScreen('welcome');
-    setResults([]);
-    setQuizAnswers(undefined);
-    setQuizSessionId(id => id + 1);
+  // 1. Scan terminé -> On va au Quiz
+  const handleScanComplete = () => {
+    setScreen('quiz');
   };
 
+  // 2. Quiz terminé -> On lance la recherche (plus d'inscription)
   const handleQuizComplete = async (answers: QuizAnswers) => {
     setQuizAnswers(answers);
     setScreen('loading_results');
 
     try {
-      const matches = await fetchMatchingStrollers(answers);
+      // On lance la recherche et on attend au moins 2 secondes pour l'effet "IA"
+      const matchesPromise = fetchMatchingStrollers(answers);
+      const delayPromise = new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const [matches] = await Promise.all([matchesPromise, delayPromise]);
+      
       setResults(matches);
-      saveToDatabaseInBackground(answers, matches.length);
       setScreen('results');
-    } catch (error: any) {
-      console.error("Erreur critique recherche:", error);
-      alert(`Erreur de recherche: ${error.message || error}`);
-      setScreen('quiz');
+    } catch (error) {
+      console.error("Erreur chargement résultats:", error);
+      setResults([]);
+      setScreen('results');
     }
   };
-
-  const saveToDatabaseInBackground = async (answers: QuizAnswers, resultCount: number) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        // Mise à jour de l'entrée utilisateur dans user_leads avec les réponses au quiz
-        // Note: l'email et le profil de base ont été créés lors de l'inscription
-        await Promise.all([
-          supabase.from('user_leads').update({ 
-            quiz_answers: answers, 
-            updated_at: new Date().toISOString()
-          }).eq('id', user.id),
-          supabase.from('quiz_history').insert({
-            user_id: user.id, 
-            answers: answers, 
-            result_count: resultCount
-          })
-        ]);
-      }
-    } catch (err) {
-      console.warn("Background save failed:", err);
-    }
-  };
-
-  const handleRestartQuiz = () => {
-    setQuizAnswers(undefined);
-    setQuizSessionId(prev => prev + 1);
-    setScreen('quiz');
-  };
-
-  const handleBackToQuiz = () => {
-    setScreen('quiz');
-  };
-
-  if (initializing) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-navy-900 text-white">
-        <Logo />
-        <div className="w-8 h-8 border-2 border-white/10 border-t-gold-400 rounded-full animate-spin mt-6"></div>
-      </div>
-    );
-  }
 
   return (
-    <div className="min-h-screen w-full flex flex-col bg-navy-900 selection:bg-gold-400/30">
-      {screen === 'welcome' && <WelcomeScreen onLoginClick={() => setScreen('login')} onRegisterClick={() => setScreen('register')} />}
-      {screen === 'login' && <LoginScreen onBack={() => setScreen('welcome')} onSuccess={() => { setQuizAnswers(undefined); setQuizSessionId(id => id + 1); setScreen('quiz'); }} />}
-      {screen === 'register' && <RegisterScreen onBack={() => setScreen('welcome')} onSuccess={() => { setQuizAnswers(undefined); setQuizSessionId(id => id + 1); setScreen('quiz'); }} />}
+    <div className="w-full h-full bg-[#151b2b] overflow-hidden">
+      {screen === 'welcome' && <WelcomeScreen onStart={handleScanComplete} />}
       
       {screen === 'quiz' && (
         <QuizScreen 
-          key={quizSessionId}
-          initialAnswers={quizAnswers} 
+          initialAnswers={quizAnswers}
           onComplete={handleQuizComplete} 
-          onBack={() => setScreen('welcome')} 
+          onBack={() => setScreen('welcome')}
         />
       )}
-      
+
       {screen === 'loading_results' && (
-        <div className="animate-in flex flex-col items-center justify-center min-h-screen text-white">
-          <Logo />
-          <div className="w-12 h-12 border-4 border-white/10 border-t-gold-400 rounded-full animate-spin mt-10 shadow-[0_0_15px_rgba(197,160,101,0.3)]"></div>
-          <p className="text-gray-300 mt-6 text-sm animate-pulse tracking-widest font-light">RECHERCHE EN COURS...</p>
+        <div className="w-full h-full flex flex-col items-center justify-center p-6 animate-in bg-[#151b2b] relative overflow-hidden">
+          {/* Background Feathers */}
+          <div className="absolute top-[15%] left-[10%] opacity-10 animate-float-slow">
+            <Feather className="text-gold-400 w-16 h-16 rotate-12" />
+          </div>
+          <div className="absolute bottom-[20%] right-[10%] opacity-10 animate-float">
+            <Feather className="text-gold-400 w-12 h-12 -rotate-12" />
+          </div>
+
+          <div className="relative w-24 h-24 flex items-center justify-center mb-8 z-10">
+             <div className="absolute w-full h-full border-4 border-gold-400/10 rounded-full"></div>
+             <div className="absolute w-full h-full border-4 border-t-gold-400 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+             <div className="absolute w-[80%] h-[80%] border-4 border-b-gold-400/50 border-t-transparent border-r-transparent border-l-transparent rounded-full animate-spin-slow"></div>
+             <Loader2 className="text-gold-400 animate-pulse" size={32} />
+          </div>
+          
+          <h3 className="text-2xl font-light text-white mb-2 z-10">Analyse en cours</h3>
+          <p className="text-gold-400 font-bold tracking-[0.2em] uppercase text-[10px] animate-pulse z-10">
+            Recherche de la poussette idéale...
+          </p>
         </div>
       )}
-      {screen === 'results' && <ResultsScreen results={results} onRestart={handleRestartQuiz} onBack={handleBackToQuiz} onLogout={handleLogout} />}
+
+      {screen === 'results' && (
+        <ResultsScreen 
+          results={results}
+          onRestart={() => setScreen('welcome')}
+          onBack={() => setScreen('welcome')}
+        />
+      )}
     </div>
   );
-};
-
-export default App;
+}

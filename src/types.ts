@@ -2,14 +2,12 @@
 export type ParentStatus = 'future' | 'parent';
 
 export interface Child {
-  ageRange: string; // Tranches d'âge (ex: 0-6m)
+  ageRange: string;
 }
 
 export interface UserFormData {
   email: string;
   password?: string;
-  firstName: string;
-  lastName: string;
   parentStatus: ParentStatus;
   pregnancyTermMonth?: string;
   pregnancyTermYear?: string;
@@ -47,4 +45,4 @@ export interface Stroller {
   [key: string]: any;
 }
 
-export type ScreenState = 'welcome' | 'login' | 'register' | 'quiz' | 'loading_results' | 'results';
+export type ScreenState = 'welcome' | 'quiz' | 'loading_results' | 'results';
