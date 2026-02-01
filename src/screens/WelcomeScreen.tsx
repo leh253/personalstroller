@@ -102,15 +102,6 @@ const WelcomeScreen: React.FC<Props> = ({ onStart }) => {
           <div className="absolute inset-0 rounded-full border-t border-[#ffeebb]/30 pointer-events-none z-20" />
         </div>
 
-        {/* TEXTE EXPERTISE */}
-        <div className="mt-20 text-center space-y-4 relative z-20">
-          <h3 className="text-[#c5a065] text-xs md:text-sm font-bold tracking-[0.3em] uppercase glow-text">
-            Expertise Biométrique
-          </h3>
-          {/* Petit séparateur doré */}
-          <div className="w-8 h-[1px] bg-gradient-to-r from-transparent via-[#c5a065] to-transparent mx-auto opacity-50"></div>
-        </div>
-
       </div>
 
       {/* --- FOOTER SCANNER --- */}

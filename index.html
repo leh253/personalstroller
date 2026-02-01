@@ -4,7 +4,17 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#151b2b" />
+    <meta name="description" content="Trouvez la poussette idéale pour votre enfant avec Personal Stroller.">
+    
     <title>Personal Stroller</title>
+    
+    <!-- PWA Manifest & Icons -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="https://www.image-heberg.fr/files/17614987662851851592.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -41,6 +51,19 @@
 <body>
     <div id="root"></div>
     <script type="module" src="/src/index.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+              console.log('SW registered: ', registration);
+            })
+            .catch(registrationError => {
+              console.warn('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
 <script type="module" src="/index.tsx"></script>
 </body>
 </html>
