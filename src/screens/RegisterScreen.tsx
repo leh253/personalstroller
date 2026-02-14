@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Mail, Lock, Trash2, Check, Plus, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Mail, Lock, User, Trash2, Check, Plus, ShieldCheck } from 'lucide-react';
 import { supabase } from '../services/supabase';
-import { UserFormData, ParentStatus, QuizAnswers } from '../types';
+import { UserFormData, ParentStatus } from '../types';
 import InputField from '../components/InputField';
 import Button from '../components/Button';
 import { MONTHS } from '../constants';
@@ -10,14 +10,15 @@ import { MONTHS } from '../constants';
 interface Props {
   onBack: () => void;
   onSuccess: () => void;
-  quizAnswers: QuizAnswers;
 }
 
-const RegisterScreen: React.FC<Props> = ({ onBack, onSuccess, quizAnswers }) => {
+const RegisterScreen: React.FC<Props> = ({ onBack, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<UserFormData>({
     email: '', 
-    password: '', 
+    password: '',
+    firstName: '',
+    lastName: '',
     parentStatus: 'future', 
     pregnancyTermMonth: '', 
     pregnancyTermYear: '',
@@ -41,7 +42,7 @@ const RegisterScreen: React.FC<Props> = ({ onBack, onSuccess, quizAnswers }) => 
 
   const updateChildAge = (index: number, val: string) => {
     const c = [...formData.children];
-    c[index].ageRange = val;
+    c[index] = { ...c[index], ageRange: val };
     setFormData(p => ({ ...p, children: c }));
   };
 
@@ -50,7 +51,9 @@ const RegisterScreen: React.FC<Props> = ({ onBack, onSuccess, quizAnswers }) => 
   }, [formData.parentStatus]);
 
   const handleRegister = async () => {
-    if (!formData.email || !formData.password) return alert("Veuillez remplir l'email et le mot de passe.");
+    if (!formData.email || !formData.password || !formData.firstName || !formData.lastName) {
+      return alert("Veuillez remplir tous les champs obligatoires (Nom, Prénom, Email, MDP).");
+    }
     if (!formData.consent) return alert("Veuillez accepter les conditions.");
     
     setLoading(true);
@@ -63,18 +66,18 @@ const RegisterScreen: React.FC<Props> = ({ onBack, onSuccess, quizAnswers }) => 
       if (authError) throw authError;
 
       if (authData.user) {
-        // Enregistrement anonymisé : pas de nom, pas de date de naissance.
-        // On inclut ici les réponses au quiz (quizAnswers)
         const { error: dbError } = await supabase.from('user_leads').insert({
           id: authData.user.id,
           email: formData.email.trim(),
+          first_name: formData.firstName.trim(),
+          last_name: formData.lastName.trim(),
           parent_status: formData.parentStatus,
           pregnancy_term: formData.parentStatus === 'future' && formData.pregnancyTermYear 
             ? `${formData.pregnancyTermYear}-${formData.pregnancyTermMonth || '01'}-01` 
             : null,
           children: formData.parentStatus === 'parent' ? formData.children : [],
           consent: formData.consent,
-          quiz_answers: quizAnswers || {}
+          quiz_answers: {}
         });
         if (dbError) console.error("Error saving lead data:", dbError);
       }
@@ -102,7 +105,7 @@ const RegisterScreen: React.FC<Props> = ({ onBack, onSuccess, quizAnswers }) => 
         <button onClick={onBack} className="p-2 hover:bg-white/5 rounded-full mr-4 text-gray-400 hover:text-white transition-colors">
           <ArrowLeft size={20} />
         </button>
-        <h2 className="text-[#c5a065] font-bold text-xs tracking-[0.2em] uppercase">Espace Personnel</h2>
+        <h2 className="text-[#c5a065] font-bold text-xs tracking-[0.2em] uppercase">Mon Espace Personnel</h2>
       </header>
 
       <div className="flex-1 p-6 pb-24 overflow-y-auto">
@@ -111,28 +114,29 @@ const RegisterScreen: React.FC<Props> = ({ onBack, onSuccess, quizAnswers }) => 
           <section className="bg-slate-900/40 p-6 rounded-[2rem] border border-white/5">
             <div className="flex items-center gap-3 mb-6 text-[#c5a065]">
               <ShieldCheck size={20} />
-              <p className="text-[10px] font-black tracking-widest uppercase">Confidentialité garantie</p>
+              <p className="text-[10px] font-black tracking-widest uppercase">Identité & Sécurité</p>
             </div>
             
-            <InputField icon={Mail} type="email" placeholder="Votre email" value={formData.email} onChange={e => updateForm('email', e.target.value)} />
-            <InputField icon={Lock} type="password" placeholder="Mot de passe sécurisé" value={formData.password} onChange={e => updateForm('password', e.target.value)} />
-            
-            <p className="text-[10px] text-gray-500 leading-relaxed mt-2 italic">
-              Nous ne collectons ni nom, ni prénom, ni date de naissance pour protéger votre vie privée.
-            </p>
+            <div className="flex gap-3">
+              <InputField icon={User} placeholder="Prénom" value={formData.firstName} onChange={e => updateForm('firstName', e.target.value)} />
+              <InputField icon={User} placeholder="Nom" value={formData.lastName} onChange={e => updateForm('lastName', e.target.value)} />
+            </div>
+
+            <InputField icon={Mail} type="email" placeholder="Email" value={formData.email} onChange={e => updateForm('email', e.target.value)} />
+            <InputField icon={Lock} type="password" placeholder="Mot de passe" value={formData.password} onChange={e => updateForm('password', e.target.value)} />
           </section>
 
           <section>
             <p className="text-[10px] font-black text-gray-500 mb-6 tracking-widest uppercase">Votre Situation</p>
             <div className="flex gap-4 mb-8">
-              {[ { l: 'Futur Parent', v: 'future' }, { l: 'Déjà Parent', v: 'parent' } ].map(o => (
+              {(['future', 'parent'] as ParentStatus[]).map(status => (
                 <button 
-                  key={o.v} 
+                  key={status} 
                   type="button" 
-                  onClick={() => updateForm('parentStatus', o.v)} 
-                  className={`flex-1 py-5 rounded-2xl text-xs font-bold border transition-all ${formData.parentStatus === o.v ? 'border-[#c5a065] bg-[#c5a065]/10 text-[#c5a065] shadow-lg' : 'border-white/5 bg-slate-900/40 text-gray-500'}`}
+                  onClick={() => updateForm('parentStatus', status)} 
+                  className={`flex-1 py-5 rounded-2xl text-xs font-bold border transition-all ${formData.parentStatus === status ? 'border-[#c5a065] bg-[#c5a065]/10 text-[#c5a065] shadow-lg' : 'border-white/5 bg-slate-900/40 text-gray-500'}`}
                 >
-                  {o.l}
+                  {status === 'future' ? 'Futur Parent' : 'Déjà Parent'}
                 </button>
               ))}
             </div>
@@ -155,7 +159,7 @@ const RegisterScreen: React.FC<Props> = ({ onBack, onSuccess, quizAnswers }) => 
                     onChange={e => updateForm('pregnancyTermYear', e.target.value)}
                   >
                     <option value="">Année</option>
-                    {years.map(y => <option key={y} value={y}>{y}</option>)}
+                    {years.map(y => <option key={y} value={y.toString()}>{y}</option>)}
                   </select>
                 </div>
               </div>
@@ -196,11 +200,11 @@ const RegisterScreen: React.FC<Props> = ({ onBack, onSuccess, quizAnswers }) => 
                 {formData.consent && <Check size={14} className="text-white" />}
               </div>
               <p className="text-[11px] text-gray-400 leading-relaxed">
-                J'accepte que mes réponses anonymisées soient analysées pour me proposer la meilleure sélection de poussettes.
+                J'accepte que mes réponses soient analysées pour me proposer la meilleure sélection de poussettes.
               </p>
             </div>
             <Button variant="primary" onClick={handleRegister} disabled={!formData.consent || loading}>
-              {loading ? "Création du profil..." : "Créer mon profil anonymisé"}
+              {loading ? "Création du profil..." : "Créer mon profil"}
             </Button>
           </section>
         </div>

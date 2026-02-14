@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Feather, CheckCircle2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowRight, ArrowLeft, Check } from 'lucide-react';
 import Logo from '../components/Logo';
 import { QUIZ_STEPS } from '../constants';
 import { QuizAnswers } from '../types';
@@ -15,150 +15,93 @@ const QuizScreen: React.FC<Props> = ({ onComplete, onBack, initialAnswers }) => 
   const [stepIndex, setStepIndex] = useState(() => initialAnswers && Object.keys(initialAnswers).length > 0 ? QUIZ_STEPS.length - 1 : 0);
   const [answers, setAnswers] = useState<QuizAnswers>(initialAnswers || {});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [animatingOut, setAnimatingOut] = useState(false);
   
   const currentQ = QUIZ_STEPS[stepIndex];
   const isLastQuestion = stepIndex === QUIZ_STEPS.length - 1;
-
-  // Reset animation state when step changes
-  useEffect(() => {
-    setAnimatingOut(false);
-  }, [stepIndex]);
+  const isQuestion5 = currentQ.id === 'Q5'; // Terrain question has more options
 
   const handleAnswer = (value: string) => {
-    if (isSubmitting || animatingOut) return;
-
+    if (isSubmitting) return;
     const newAnswers = { ...answers, [currentQ.id]: value };
     setAnswers(newAnswers);
-    
-    // Feedback visuel (sélection)
-    if (isLastQuestion) {
-      setIsSubmitting(true);
-      setTimeout(() => {
-        onComplete(newAnswers);
-      }, 600);
-    } else {
-      setAnimatingOut(true);
-      setTimeout(() => {
-        setStepIndex(prev => prev + 1);
-      }, 300);
-    }
+    if (isLastQuestion) setIsSubmitting(true);
+    setTimeout(() => {
+      if (!isLastQuestion) setStepIndex(prev => prev + 1);
+      else onComplete(newAnswers);
+    }, 250); // Slightly longer delay for animation feeling
   };
 
-  const handleBack = () => {
-    if (isSubmitting) return;
-    if (stepIndex > 0) setStepIndex(prev => prev - 1);
-    else onBack();
-  };
+  const progress = ((stepIndex + 1) / QUIZ_STEPS.length) * 100;
 
   return (
-    <div className="w-full h-full flex flex-col bg-[#0f172a] relative overflow-hidden font-sans">
-      
-      {/* --- BACKGROUND DYNAMIQUE --- */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#1e293b] via-[#0f172a] to-[#000000] z-0" />
-      
-      {/* Orbe lumineux décoratif haut-gauche */}
-      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#c5a065]/5 rounded-full blur-[100px] pointer-events-none" />
-      
-      {/* Orbe lumineux décoratif bas-droite */}
-      <div className="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] bg-[#c5a065]/5 rounded-full blur-[80px] pointer-events-none" />
-
-      {/* Plumes flottantes subtiles */}
-      <div className="absolute top-[15%] right-[5%] opacity-[0.03] animate-float-slow pointer-events-none">
-        <Feather size={120} />
+    <div className="w-full flex-1 flex flex-col relative min-h-screen overflow-hidden">
+      {/* Top Bar */}
+      <div className="p-6 shrink-0 z-20">
+        <div className="max-w-xl mx-auto">
+          <div className="flex justify-between items-center mb-6">
+            <button 
+              onClick={() => stepIndex > 0 ? setStepIndex(s => s - 1) : onBack()} 
+              className="text-gray-400 hover:text-white p-2 -ml-2 rounded-full hover:bg-white/5 transition-colors group"
+              disabled={isSubmitting}
+            >
+              <ArrowLeft size={22} className="group-hover:-translate-x-1 transition-transform" />
+            </button>
+            
+            <div className="flex flex-col items-end">
+               <span className="text-gold-400 font-serif text-2xl italic leading-none">0{stepIndex + 1}</span>
+               <span className="text-gray-600 text-[10px] font-medium tracking-widest uppercase">Question</span>
+            </div>
+          </div>
+          
+          {/* Elegant Progress Line */}
+          <div className="w-full bg-white/5 h-[2px] rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-[#c5a065] to-[#fde68a] transition-all duration-700 ease-[cubic-bezier(0.25,0.1,0.25,1)] shadow-[0_0_10px_rgba(197,160,101,0.5)]" 
+              style={{ width: `${progress}%` }}
+            ></div>
+          </div>
+        </div>
       </div>
 
-      <div className="max-w-xl w-full mx-auto flex flex-col h-full relative z-10 px-6 py-6">
-        
-        {/* --- HEADER --- */}
-        <div className="flex justify-between items-center mb-6">
-          <button 
-            onClick={handleBack} 
-            className="group flex items-center justify-center w-10 h-10 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 hover:border-[#c5a065]/50 transition-all backdrop-blur-md"
-            disabled={isSubmitting}
-          >
-            <ArrowLeft size={18} className="text-gray-400 group-hover:text-white transition-colors" />
-          </button>
-          
-          <div className="scale-75 origin-right">
-             <Logo size="small" />
+      {/* Content Area */}
+      <div className="flex-1 flex flex-col justify-center px-6 pb-12 overflow-y-auto z-10">
+        <div className="max-w-md w-full mx-auto">
+          <div key={currentQ.id} className="animate-in-up flex flex-col">
+            <h2 className={`font-serif text-white text-center leading-tight mb-10 drop-shadow-lg ${isQuestion5 ? 'text-2xl' : 'text-3xl md:text-4xl'}`}>
+              {currentQ.question}
+            </h2>
+            
+            <div className={`grid gap-4 ${isQuestion5 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'}`}>
+              {currentQ.options.map((opt, i) => {
+                const isSelected = answers[currentQ.id] === opt.value;
+                
+                return (
+                  <button 
+                    key={i} 
+                    onClick={() => handleAnswer(opt.value)} 
+                    disabled={isSubmitting} 
+                    className={`relative w-full group transition-all duration-300 flex items-center justify-between p-5 rounded-2xl border backdrop-blur-md overflow-hidden
+                    ${isSelected 
+                        ? 'bg-[#c5a065] border-[#c5a065] text-white shadow-glow scale-[1.02]' 
+                        : 'bg-white/5 border-white/10 text-slate-200 hover:bg-white/10 hover:border-[#c5a065]/50 hover:shadow-lg'
+                    }`}
+                  >
+                    {/* Background glow on hover for unselected */}
+                    {!isSelected && <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />}
+                    
+                    <span className={`font-sans font-medium text-left tracking-wide z-10 ${isQuestion5 ? 'text-sm' : 'text-lg'} ${isSelected ? 'text-white' : 'text-slate-200'}`}>
+                      {opt.label}
+                    </span>
+                    
+                    <div className={`w-6 h-6 rounded-full border flex items-center justify-center transition-all z-10 ${isSelected ? 'border-white bg-white text-[#c5a065]' : 'border-white/20 text-transparent group-hover:border-[#c5a065] group-hover:text-[#c5a065]'}`}>
+                       {isSelected ? <Check size={14} strokeWidth={3} /> : <ArrowRight size={14} />}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
-
-        {/* --- PROGRESSION SEGMENTÉE --- */}
-        <div className="w-full flex gap-2 mb-10">
-          {QUIZ_STEPS.map((_, idx) => (
-            <div 
-              key={idx} 
-              className={`h-1.5 rounded-full flex-1 transition-all duration-500 ${
-                idx <= stepIndex 
-                  ? 'bg-gradient-to-r from-[#c5a065] to-[#e0c9a6] shadow-[0_0_10px_rgba(197,160,101,0.4)]' 
-                  : 'bg-white/10'
-              }`}
-            />
-          ))}
-        </div>
-
-        {/* --- QUESTION AREA --- */}
-        <div 
-          key={currentQ.id} 
-          className={`flex-1 flex flex-col justify-center transition-all duration-300 ${animatingOut ? 'opacity-0 translate-y-[-20px] scale-95' : 'opacity-100 translate-y-0 scale-100'} animate-in-up`}
-        >
-          {/* Numéro de question stylisé */}
-          <p className="text-[#c5a065] text-xs font-bold tracking-[0.2em] uppercase mb-4 text-center">
-            Question {stepIndex + 1}
-          </p>
-
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-10 text-white leading-tight drop-shadow-lg">
-            {currentQ.question}
-          </h2>
-
-          <div className="space-y-4">
-            {currentQ.options.map((opt, i) => {
-              const isSelected = answers[currentQ.id] === opt.value;
-              
-              return (
-                <button 
-                  key={i} 
-                  onClick={() => handleAnswer(opt.value)} 
-                  disabled={isSubmitting}
-                  className={`
-                    relative w-full p-5 rounded-2xl flex items-center justify-between group transition-all duration-300 border
-                    ${isSelected 
-                      ? 'bg-[#c5a065]/10 border-[#c5a065] shadow-[0_0_30px_rgba(197,160,101,0.15)]' 
-                      : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/20 hover:shadow-lg'
-                    }
-                  `}
-                  style={{ animationDelay: `${i * 100}ms` }} // Staggered effect
-                >
-                  {/* Texte de l'option */}
-                  <span className={`text-lg font-medium tracking-wide text-left transition-colors ${isSelected ? 'text-white' : 'text-gray-300 group-hover:text-white'}`}>
-                    {opt.label}
-                  </span>
-
-                  {/* Indicateur visuel (Cercle / Check) */}
-                  <div className={`
-                    w-6 h-6 rounded-full border flex items-center justify-center transition-all duration-300
-                    ${isSelected 
-                      ? 'bg-[#c5a065] border-[#c5a065] scale-110' 
-                      : 'border-white/20 group-hover:border-[#c5a065]/50'
-                    }
-                  `}>
-                    {isSelected && <CheckCircle2 size={16} className="text-[#0f172a]" />}
-                  </div>
-
-                  {/* Effet de lueur au survol (non sélectionné) */}
-                  {!isSelected && (
-                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Footer spacer */}
-        <div className="h-10"></div>
       </div>
     </div>
   );

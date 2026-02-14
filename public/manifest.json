@@ -1,63 +1,28 @@
 
 {
   "name": "Personal Stroller",
-  "short_name": "Personal Stroller",
-  "description": "L'application experte pour trouver la poussette idéale adaptée à votre style de vie et vos besoins.",
-  "lang": "fr",
-  "dir": "ltr",
+  "short_name": "Stroller",
+  "description": "Trouvez la poussette idéale pour votre enfant.",
   "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "display_override": ["window-controls-overlay"],
-  "orientation": "portrait",
   "background_color": "#151b2b",
   "theme_color": "#151b2b",
-  "categories": ["lifestyle", "shopping", "family"],
-  "prefer_related_applications": false,
+  "orientation": "portrait",
+  "categories": ["lifestyle", "family"],
   "icons": [
     {
       "src": "https://www.image-heberg.fr/files/17614987662851851592.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
       "src": "https://www.image-heberg.fr/files/17614987662851851592.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "https://www.image-heberg.fr/files/17614987662851851592.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "https://www.image-heberg.fr/files/17614987662851851592.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Accueil de Personal Stroller"
-    },
-    {
-      "src": "https://www.image-heberg.fr/files/17614987662851851592.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Sélection Premium"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Commencer le Quiz",
-      "short_name": "Quiz",
-      "description": "Trouvez votre poussette idéale maintenant",
-      "url": "/",
-      "icons": [{ "src": "https://www.image-heberg.fr/files/17614987662851851592.png", "sizes": "192x192" }]
+      "purpose": "any maskable"
     }
   ]
 }

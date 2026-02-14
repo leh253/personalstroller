@@ -1,4 +1,3 @@
-
 import { QuizStep } from './types';
 
 export const SUPABASE_URL = 'https://osijrppbtsllhnxjhjie.supabase.co';
