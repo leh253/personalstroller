@@ -12,7 +12,8 @@ interface Props {
 }
 
 const QuizScreen: React.FC<Props> = ({ onComplete, onBack, initialAnswers }) => {
-  const [stepIndex, setStepIndex] = useState(() => initialAnswers && Object.keys(initialAnswers).length > 0 ? QUIZ_STEPS.length - 1 : 0);
+  // Toujours commencer à la question 0 pour permettre la modification depuis le début
+  const [stepIndex, setStepIndex] = useState(0);
   const [answers, setAnswers] = useState<QuizAnswers>(initialAnswers || {});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [animatingOut, setAnimatingOut] = useState(false);

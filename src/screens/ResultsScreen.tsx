@@ -89,7 +89,7 @@ const ResultsScreen: React.FC<Props> = ({ results, onRestart, onBack }) => {
 
           <footer className="mt-20 mb-10 flex flex-col items-center gap-6">
             <Button variant="outline" onClick={onRestart} className="max-w-xs">
-              <RefreshCw size={18} className="mr-2" /> Recommencer le quiz
+              <RefreshCw size={18} className="mr-2" /> Modifier mes réponses
             </Button>
           </footer>
         </div>

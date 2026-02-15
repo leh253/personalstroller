@@ -12,12 +12,13 @@ export default function App() {
   const [quizAnswers, setQuizAnswers] = useState<QuizAnswers>({});
   const [results, setResults] = useState<Stroller[]>([]);
 
-  // 1. Scan terminé -> On va au Quiz
+  // 1. Scan terminé -> On va au Quiz (Nouveau départ)
   const handleScanComplete = () => {
+    setQuizAnswers({}); // On réinitialise les réponses pour un nouveau parcours complet
     setScreen('quiz');
   };
 
-  // 2. Quiz terminé -> On lance la recherche (plus d'inscription)
+  // 2. Quiz terminé -> On lance la recherche
   const handleQuizComplete = async (answers: QuizAnswers) => {
     setQuizAnswers(answers);
     setScreen('loading_results');
@@ -39,6 +40,13 @@ export default function App() {
       setResults([]);
       setScreen('results');
     }
+  };
+
+  // 3. Redémarrage / Modification depuis les résultats
+  const handleRestart = () => {
+    // On garde les réponses actuelles pour permettre la modification
+    // et on renvoie au quiz qui reprendra à la question 1
+    setScreen('quiz');
   };
 
   return (
@@ -80,7 +88,7 @@ export default function App() {
       {screen === 'results' && (
         <ResultsScreen 
           results={results}
-          onRestart={() => setScreen('welcome')}
+          onRestart={handleRestart}
           onBack={() => setScreen('welcome')}
         />
       )}

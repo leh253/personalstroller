@@ -147,7 +147,7 @@ const WelcomeScreen: React.FC<Props> = ({ onStart }) => {
         </div>
 
         <p className="mt-6 text-[10px] text-[#4a5568] tracking-[0.2em] font-medium uppercase">
-          {isScanning ? "Analyse en cours..." : "Maintenir pour analyser"}
+          {isScanning ? "Analyse en cours..." : "Touchez pour analyser"}
         </p>
 
       </div>
