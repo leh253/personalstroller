@@ -1,14 +1,30 @@
-const CACHE_NAME = 'stroller-cache-v2';
-const ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json'
-];
+
+// KILL SWITCH SERVICE WORKER
+// Ce script force la désinstallation immédiate de tout cache existant
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)));
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
+    caches.keys().then((keyList) => {
+      return Promise.all(keyList.map((key) => {
+        console.log('KILL SWITCH: Removing cache', key);
+        return caches.delete(key);
+      }));
+    }).then(() => {
+      return self.clients.claim();
+    }).then(() => {
+      // Force tous les clients (onglets ouverts) à recharger
+      return self.clients.matchAll().then(clients => {
+        clients.forEach(client => client.postMessage({ type: 'FORCE_RELOAD' }));
+      });
+    })
+  );
 });
 
 self.addEventListener('fetch', (e) => {
-  e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
+  // Bypass total du cache : tout passe par le réseau
+  e.respondWith(fetch(e.request));
 });

@@ -3,129 +3,46 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="theme-color" content="#151b2b" />
-    <meta name="description" content="Trouvez la poussette idéale pour votre enfant." />
+    <meta name="description" content="Trouvez la poussette idéale pour votre enfant avec Personal Stroller.">
     
-    <!-- PWA iOS specific -->
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Stroller" />
-
     <title>Personal Stroller</title>
     
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
-    
+    <!-- PWA Manifest & Icons -->
     <link rel="manifest" href="/manifest.json" />
-    <link rel="apple-touch-icon" href="https://www.image-heberg.fr/files/17614987662851851592.png" />
-    <link rel="icon" type="image/png" href="https://www.image-heberg.fr/files/17614987662851851592.png" />
+    <link rel="apple-touch-icon" href="https://www.image-heberg.fr/files/17614987662851851592.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
         theme: {
           extend: {
+            fontFamily: { 
+              sans: ['"Outfit"', 'sans-serif'],
+            },
             colors: {
-              navy: { 
-                950: '#0f172a',
-                900: '#151b2b', 
-                800: '#1e293b' 
-              },
-              gold: { 
-                300: '#e0c9a6',
-                400: '#c5a065', 
-                500: '#b08d55', 
-                600: '#8c6b3a' 
-              }
-            },
-            fontFamily: {
-              sans: ['Outfit', 'sans-serif'],
-              serif: ['Playfair Display', 'serif'],
-            },
-            backgroundImage: {
-              'luxury-gradient': 'radial-gradient(circle at top center, #1e293b 0%, #0f172a 100%)',
-              'gold-gradient': 'linear-gradient(135deg, #fde68a 0%, #c5a065 50%, #b08d55 100%)',
+              navy: { 950: '#0f172a', 900: '#151b2b', 800: '#1e293b' },
+              gold: { 300: '#e0c9a6', 400: '#c5a065', 500: '#b08d55' }
             }
           }
         }
       }
     </script>
-    <style>
-      body { 
-        background: radial-gradient(circle at 50% 0%, #243046 0%, #0f131f 100%);
-        margin: 0; 
-        color: #f8fafc;
-        font-family: 'Outfit', sans-serif;
-        height: 100vh;
-        overflow-x: hidden;
-        overflow-y: auto;
-      }
-      #root { min-height: 100vh; display: flex; flex-direction: column; }
-      
-      .glass-panel {
-        background: rgba(30, 41, 59, 0.4);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-      }
-      
-      .glass-input {
-        background: rgba(15, 23, 42, 0.5);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: white;
-        transition: all 0.3s ease;
-      }
-      .glass-input:focus {
-        background: rgba(15, 23, 42, 0.8);
-        border-color: #c5a065;
-        box-shadow: 0 0 0 1px rgba(197, 160, 101, 0.3);
-      }
-
-      select {
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='white' stroke-opacity='0.5' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-        background-position: right 0.75rem center;
-        background-repeat: no-repeat;
-        background-size: 1.25em 1.25em;
-        padding-right: 2.5rem;
-        -webkit-appearance: none;
-        appearance: none;
-      }
-
-      .animate-in { animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-      .animate-in-up { animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-      
-      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-      @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-      
-      .gold-text {
-        background: linear-gradient(to right, #fde68a, #c5a065, #b08d55);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-size: 200% auto;
-        animation: shine 4s linear infinite;
-      }
-      
-      @keyframes shine {
-        to {
-          background-position: 200% center;
-        }
-      }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
 <script type="importmap">
 {
   "imports": {
-    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@^2.89.0",
+    "react": "https://esm.sh/react@^19.2.3",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
     "react/": "https://esm.sh/react@^19.2.3/",
-    "react": "https://esm.sh/react@^19.2.3",
-    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@^2.90.1",
     "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
-    "vite": "https://esm.sh/vite@^7.3.0",
-    "@capacitor/cli": "https://esm.sh/@capacitor/cli@^8.0.0"
+    "vite": "https://esm.sh/vite@^7.3.1",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
+    "@capacitor/cli": "https://esm.sh/@capacitor/cli@^8.0.1"
   }
 }
 </script>
@@ -138,8 +55,12 @@
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js')
-            .then(reg => console.log('SW registered'))
-            .catch(err => console.log('SW failed', err));
+            .then(registration => {
+              console.log('SW registered: ', registration);
+            })
+            .catch(registrationError => {
+              console.warn('SW registration failed: ', registrationError);
+            });
         });
       }
     </script>
